@@ -1,10 +1,11 @@
-from config.symbols import get_stock_symbols, get_symbol_name
+# backend/models/transaction.py
 
 class Transaction:
-    def __init__(self, asset_id: str, type: str, amount: float):
+    def __init__(self, asset_id: str, type: str, amount: float, price: float):
         self.asset_id = asset_id
         self.type = type  # "buy" or "sell"
         self.amount = amount
+        self.price = price  # Price at the time of transaction
         self.next = None
         self.prev = None
 
@@ -21,8 +22,11 @@ class TransactionHistory:
             transaction.prev = self.tail
             self.tail = transaction
 
-    def display_transactions(self):
+    def get_transactions(self, asset_id: str):
+        transactions = []
         current = self.head
         while current:
-            print(f"Transaction: {current.type} {current.amount} of {current.asset_id}")
+            if current.asset_id == asset_id:
+                transactions.append(current)
             current = current.next
+        return transactions

@@ -1,6 +1,6 @@
 # backend/algorithms/risk_analysis.py
 from typing import List, Dict
-from backend.utils.avl_tree import AVLTree
+from utils.avl_tree import AVLTree
 
 class RiskAnalysis:
     def __init__(self, historical_prices: Dict[str, AVLTree]):

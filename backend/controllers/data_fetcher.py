@@ -1,55 +1,124 @@
-# backend/controllers/data_fetcher.py
-
 import yfinance as yf
 import pandas as pd
 import os
-from config.symbols import get_stock_symbols, get_symbol_name
+from config.symbols import get_stock_symbols, get_bond_symbols, get_crypto_symbols
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), '../data/historical_data.csv')
 
-def fetch_and_save_stock_data(symbol):
+def fetch_and_save_data(symbol, asset_type="stock"):
     """
-    Fetch historical stock data from Yahoo Finance and save to historical_data.csv.
-    If the file doesn't exist, it will create it; otherwise, it appends new data.
-
+    Fetch and save historical data for a given symbol.
+    Supports stocks, bonds, and cryptos.
+    
     Args:
-        symbol (str): The stock symbol to fetch (e.g., "AAPL").
-
+        symbol (str): The asset symbol.
+        asset_type (str): Type of asset, e.g., 'stock', 'bond', 'crypto'.
+    
     Returns:
-        pd.DataFrame: The fetched historical stock data.
+        pd.DataFrame: The fetched historical data.
     """
-    # Fetch historical data using yfinance
-    stock = yf.Ticker(symbol)
-    data = stock.history(period="1y")
-    data['Symbol'] = symbol  # Add a column to identify the stock symbol
+    valid_symbols = {
+        "stock": get_stock_symbols(),
+        "bond": get_bond_symbols(),
+        "crypto": get_crypto_symbols(),
+    }
 
-    # If file does not exist, save with headers; else append
+    if symbol not in valid_symbols.get(asset_type, []):
+        print(f"Invalid symbol: {symbol} for asset type: {asset_type}")
+        return None
+
+    # Fetch data from Yahoo Finance
+    asset = yf.Ticker(symbol)
+    data = asset.history(period="1y")
+    data['Symbol'] = symbol  # Add symbol column for easy lookup
+
+    # Append data to CSV or create it if it doesn’t exist
     if not os.path.exists(DATA_PATH):
         data.to_csv(DATA_PATH, mode='w', index=True)
     else:
         data.to_csv(DATA_PATH, mode='a', header=False, index=True)
-    
-    print(f"Data for {symbol} has been fetched and saved.")
+
+    print(f"Data for {symbol} ({asset_type}) has been saved to {DATA_PATH}.")
     return data
 
-def read_stock_data(symbol):
+def fetch_current_price(symbol, asset_type="stock"):
     """
-    Reads stock data for a symbol from historical_data.csv if available.
-
+    Fetches the latest price for a given asset symbol.
+    
     Args:
-        symbol (str): The stock symbol to read (e.g., "AAPL").
-
+        symbol (str): The asset symbol.
+        asset_type (str): Type of asset, e.g., 'stock', 'bond', 'crypto'.
+    
     Returns:
-        pd.DataFrame or None: DataFrame with stock data if found, else None.
+        float or None: Latest close price if symbol is valid, else None.
     """
-    if os.path.exists(DATA_PATH):
-        data = pd.read_csv(DATA_PATH, index_col=0, parse_dates=True)
-        if symbol in data['Symbol'].values:
-            return data[data['Symbol'] == symbol]
-    return None  # Return None if data is not found
+    valid_symbols = {
+        "stock": get_stock_symbols(),
+        "bond": get_bond_symbols(),
+        "crypto": get_crypto_symbols(),
+    }
 
-def fetch_current_price(symbol):
-    """Fetch the current price for a given stock symbol using yfinance."""
-    stock = yf.Ticker(symbol)
-    current_price = stock.history(period="1d")['Close'].iloc[-1]  # Fetch the latest close price
-    return current_price
+    if symbol not in valid_symbols.get(asset_type, []):
+        print(f"Invalid symbol: {symbol} for asset type: {asset_type}")
+        return None
+
+    asset = yf.Ticker(symbol)
+    try:
+        current_price = asset.history(period="1d")['Close'].iloc[-1]
+        return current_price
+    except (IndexError, KeyError):
+        print(f"Failed to fetch current price for {symbol}")
+        return None
+
+def read_historical_data(symbol):
+    """
+    Reads historical data for a symbol from `historical_data.csv`.
+    
+    Args:
+        symbol (str): The asset symbol.
+    
+    Returns:
+        pd.DataFrame: Dataframe containing historical prices for the given symbol.
+    """
+    if not os.path.exists(DATA_PATH):
+        print(f"No historical data found at {DATA_PATH}.")
+        return None
+
+    data = pd.read_csv(DATA_PATH)
+    symbol_data = data[data['Symbol'] == symbol]
+
+    if symbol_data.empty:
+        print(f"No data found for symbol {symbol} in historical_data.csv")
+        return None
+
+    return symbol_data
+
+def calculate_profit(symbol, purchase_price):
+    """
+    Calculates the profit based on the purchase price and current market price.
+    
+    Args:
+        symbol (str): The asset symbol.
+        purchase_price (float): The price at which the asset was purchased.
+    
+    Returns:
+        float: The calculated profit (current price - purchase price).
+    """
+    current_price = fetch_current_price(symbol)
+    if current_price is None:
+        print(f"Could not fetch current price for {symbol}.")
+        return None
+
+    profit = current_price - purchase_price
+    print(f"Profit for {symbol} = {profit}")
+    return profit
+
+# Utility to fetch data for all configured symbols
+def fetch_all_data():
+    """
+    Fetches and saves data for all symbols across asset types.
+    """
+    for asset_type, symbols in [("stock", get_stock_symbols()), ("bond", get_bond_symbols()), ("crypto", get_crypto_symbols())]:
+        for symbol in symbols:
+            fetch_and_save_data(symbol, asset_type)
+    print("Data fetched for all configured symbols.")
