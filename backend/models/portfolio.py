@@ -1,6 +1,7 @@
 # backend/models/portfolio.py
 from typing import Dict
 from backend.models.asset import Asset
+from config.symbols import get_stock_symbols, get_symbol_name
 
 class Portfolio:
     def __init__(self):

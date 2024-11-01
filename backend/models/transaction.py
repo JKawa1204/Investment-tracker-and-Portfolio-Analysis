@@ -1,4 +1,4 @@
-# backend/models/transaction.py
+from config.symbols import get_stock_symbols, get_symbol_name
 
 class Transaction:
     def __init__(self, asset_id: str, type: str, amount: float):

@@ -3,6 +3,7 @@ from typing import Dict, List
 from backend.models.transaction import Transaction
 from backend.algorithms.optimization import Optimization
 from backend.utils.queue import Queue
+from config.symbols import get_stock_symbols, get_symbol_name
 
 class PortfolioManager:
     def __init__(self):

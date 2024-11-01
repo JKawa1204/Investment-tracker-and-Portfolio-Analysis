@@ -3,6 +3,7 @@
 import yfinance as yf
 import pandas as pd
 import os
+from config.symbols import get_stock_symbols, get_symbol_name
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), '../data/historical_data.csv')
 
@@ -46,3 +47,9 @@ def read_stock_data(symbol):
         if symbol in data['Symbol'].values:
             return data[data['Symbol'] == symbol]
     return None  # Return None if data is not found
+
+def fetch_current_price(symbol):
+    """Fetch the current price for a given stock symbol using yfinance."""
+    stock = yf.Ticker(symbol)
+    current_price = stock.history(period="1d")['Close'].iloc[-1]  # Fetch the latest close price
+    return current_price
