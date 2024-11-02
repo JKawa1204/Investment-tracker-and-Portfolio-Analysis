@@ -27,6 +27,11 @@ class TransactionHistory:
         current = self.head
         while current:
             if current.asset_id == asset_id:
-                transactions.append(current)
+                transactions.append({
+                    "asset_id": current.asset_id,
+                    "type": current.type,
+                    "amount": current.amount,
+                    "price": current.price
+                })
             current = current.next
         return transactions

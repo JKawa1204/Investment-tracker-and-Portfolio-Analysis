@@ -3,3 +3,4 @@ pandas         # For data handling and historical data management
 requests       # For making API requests to fetch financial data
 numpy          # For numerical operations
 yfinance
+prisma
