@@ -1,12 +1,17 @@
-# backend/algorithms/allocation.py
 import heapq
 from typing import List, Dict
-
 class Allocation:
-    def __init__(self, assets: List[Dict[str, float]]):
-        self.assets = assets  # Each asset should have fields like "id" and "priority"
+    def __init__(self):
+        self.assets = []  # Initialize empty list
+
+    def set_assets(self, assets: List[Dict[str, float]]):
+        self.assets = assets
+        return self
 
     def calculate_allocation(self) -> Dict[str, float]:
+        if not self.assets:
+            return {}
+            
         # Use a max-heap (inverted priorities) for allocation based on priority
         heap = [(-asset['priority'], asset['id']) for asset in self.assets]
         heapq.heapify(heap)

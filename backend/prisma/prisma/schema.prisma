@@ -1,0 +1,43 @@
+// Define the database type at the top
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator py {
+  provider = "prisma-client-py"
+  output   = "prisma"
+}
+
+// Asset table - represents each stock, crypto, or bond
+model Asset {
+  id             Int              @id @default(autoincrement())
+  symbol         String           @unique
+  name           String
+  assetType      String // Type of asset (e.g., "stock", "crypto", "bond")
+  sector         String?
+  quantity       Float
+  price          Float
+  transactions   Transaction[]
+  historicalData HistoricalData[]
+}
+
+// Transaction table - represents buy/sell transactions for assets
+model Transaction {
+  id        Int      @id @default(autoincrement())
+  type      String // Type of transaction (e.g., "buy", "sell")
+  quantity  Float
+  price     Float
+  createdAt DateTime @default(now())
+  asset     Asset    @relation(fields: [assetId], references: [id])
+  assetId   Int // Foreign key to Asset
+}
+
+// HistoricalData table - stores historical price data for each asset
+model HistoricalData {
+  id         Int      @id @default(autoincrement())
+  date       DateTime
+  closePrice Float
+  asset      Asset    @relation(fields: [assetId], references: [id])
+  assetId    Int // Foreign key to Asset
+}

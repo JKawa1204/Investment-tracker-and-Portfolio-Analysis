@@ -1,60 +1,43 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-// Define the database type at the top (replace `mysql` with your database type if different)
+// Define the database type at the top
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+generator py {
+  provider = "prisma-client-py"
+  output   = "prisma"
 }
 
-// Portfolio table - represents a user's investment portfolio
-model Portfolio {
-  id          Int       @id @default(autoincrement())
-  name        String
-  createdAt   DateTime  @default(now())
-  assets      Asset[]   // One-to-many relationship with Asset
-  transactions Transaction[]
-}
-
-// Asset table - represents each stock, crypto, or bond in the portfolio
+// Asset table - represents each stock, crypto, or bond
 model Asset {
-  id          Int       @id @default(autoincrement())
-  symbol      String
-  name        String
-  assetType   String     // Type of asset (e.g., "stock", "crypto", "bond")
-  sector      String?
-  quantity    Float
-  price       Float
-  portfolio   Portfolio  @relation(fields: [portfolioId], references: [id])
-  portfolioId Int        // Foreign key to Portfolio
-  transactions Transaction[]
-  historicalData HistoricalData[]  // One-to-many relationship with HistoricalData
+  id            Int              @id @default(autoincrement())
+  symbol        String           @unique
+  name          String
+  assetType     String           // Type of asset (e.g., "stock", "crypto", "bond")
+  sector        String?
+  quantity      Float
+  price         Float
+  transactions  Transaction[]
+  historicalData HistoricalData[]
 }
 
 // Transaction table - represents buy/sell transactions for assets
 model Transaction {
-  id          Int      @id @default(autoincrement())
-  type        String   // Type of transaction (e.g., "buy", "sell")
+  id          Int       @id @default(autoincrement())
+  type        String    // Type of transaction (e.g., "buy", "sell")
   quantity    Float
   price       Float
-  createdAt   DateTime @default(now())
-  asset       Asset    @relation(fields: [assetId], references: [id])
-  assetId     Int      // Foreign key to Asset
-  portfolio   Portfolio @relation(fields: [portfolioId], references: [id])
-  portfolioId Int       // Foreign key to Portfolio
+  createdAt   DateTime  @default(now())
+  asset       Asset     @relation(fields: [assetId], references: [id])
+  assetId     Int       // Foreign key to Asset
 }
 
 // HistoricalData table - stores historical price data for each asset
 model HistoricalData {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   date        DateTime
   closePrice  Float
-  asset       Asset    @relation(fields: [assetId], references: [id])
-  assetId     Int      // Foreign key to Asset
+  asset       Asset     @relation(fields: [assetId], references: [id])
+  assetId     Int       // Foreign key to Asset
 }
